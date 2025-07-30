@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafarAI</title>
+    <link rel="stylesheet" href="sidebar.css">
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h2>SafarAI</h2>
+            <div class="status" id="status">Ready</div>
+        </div>
+        
+        <div class="api-key-section" id="apiKeySection">
+            <input type="password" id="apiKeyInput" placeholder="Enter DeepSeek API Key">
+            <button id="saveApiKey">Save</button>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <div class="messages" id="messages"></div>
+            
+            <div class="input-container">
+                <textarea id="messageInput" placeholder="Ask me anything about this page..." rows="3"></textarea>
+                <button id="sendButton">Send</button>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <span>Thinking...</span>
+        </div>
+    </div>
+    
+    <script src="sidebar.js"></script>
+</body>
+</html>
