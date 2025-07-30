@@ -71,18 +71,47 @@ body {
     position: relative;
 }
 
-.header::before {
-    content: '🛡️';
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 24px;
-    background: var(--glass-bg);
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.logo {
+    color: var(--primary-color, #22c55e);
+    filter: drop-shadow(0 2px 4px rgba(34, 197, 94, 0.3));
+    animation: logoGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes logoGlow {
+    0% { filter: drop-shadow(0 2px 4px rgba(34, 197, 94, 0.3)); }
+    100% { filter: drop-shadow(0 2px 8px rgba(34, 197, 94, 0.6)); }
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.icon-button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
     padding: 8px;
-    border-radius: 50%;
-    border: 2px solid var(--glass-border);
-    box-shadow: var(--shadow-light);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-button:hover {
+    background: var(--primary-gradient);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
 }
 
 .header h2 {
@@ -316,7 +345,7 @@ body {
 }
 
 .message.assistant::before {
-    content: '🛡️';
+    content: '🤖';
     position: absolute;
     top: -10px;
     left: -10px;
@@ -400,6 +429,12 @@ body {
     background: rgba(255, 255, 255, 1);
 }
 
+.button-group {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
 #sendButton {
     padding: 14px 24px;
     background: var(--primary-gradient);
@@ -432,6 +467,32 @@ body {
     transform: none;
     box-shadow: var(--shadow-light);
     opacity: 0.6;
+}
+
+.stop-button {
+    padding: 12px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 48px;
+}
+
+.stop-button:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.stop-button:active {
+    transform: translateY(0);
 }
 
 .loading {
@@ -503,7 +564,7 @@ body {
 }
 
 .typing-indicator::before {
-    content: '🛡️';
+    content: '🤖';
     position: absolute;
     top: -10px;
     left: -10px;

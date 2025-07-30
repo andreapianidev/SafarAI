@@ -6,11 +6,148 @@ class SafarAIPopup {
         this.apiKey = null;
         this.currentPageContent = '';
         this.isLoading = false;
+        this.currentAbortController = null;
+        this.conversationHistory = [];
+        this.currentLanguage = 'it'; // Default to Italian
         
+        this.initializeTranslations();
         this.initializeElements();
+        this.updateInterface(); // Initialize interface with default language
         this.bindEvents();
         this.loadApiKey();
+        this.loadConversationHistory();
         this.checkApiKeyStatus();
+    }
+    
+    initializeTranslations() {
+        this.translations = {
+            it: {
+                // Interface elements
+                apiKeyPlaceholder: 'Inserisci la chiave API DeepSeek',
+                saveButton: 'Salva',
+                sendButton: 'Invia',
+                messagePlaceholder: 'Fammi qualsiasi domanda su questa pagina...',
+                thinkingText: 'Sto pensando...',
+                readyStatus: 'Pronto',
+                
+                // Status messages
+                extractingContent: 'Estrazione contenuto in corso...',
+                readyLimited: 'Pronto (limitato)',
+                contentExtractionFailed: 'Estrazione contenuto fallita',
+                apiKeySaved: 'Chiave API salvata',
+                errorSavingApiKey: 'Errore nel salvare la chiave API',
+                chatCleared: 'Chat cancellata',
+                thinking: 'Sto pensando...',
+                
+                // Error messages
+                errorProcessingRequest: 'Scusa, ho riscontrato un errore nell\'elaborazione della tua richiesta. Riprova.',
+                unableToExtract: 'Impossibile estrarre il contenuto della pagina. Puoi comunque fare domande generali.',
+                systemPageError: 'Questa pagina non può essere analizzata (pagina di sistema o estensione).',
+                extractionError: 'Errore nell\'estrazione del contenuto: ',
+                noContentAvailable: 'Nessun contenuto disponibile',
+                
+                // Content extraction failed message
+                extractionFailedMessage: '⚠️ **Estrazione contenuto fallita**\n\nNon sono riuscito ad analizzare il contenuto di questa pagina. Prova a:\n\n• **Ricaricare la pagina** e riaprire SafarAI\n• Assicurarti che la pagina sia completamente caricata\n• Verificare che non si tratti di una pagina protetta\n\nPuoi comunque farmi domande generali!',
+                
+                // Commands and help
+                commandsTitle: '🤖 **Comandi SafarAI:**',
+                clearCommand: '• **/clear** o **/cancella** - Cancella cronologia chat',
+                helpCommand: '• **/help** o **/aiuto** - Mostra questo messaggio di aiuto',
+                statusCommand: '• **/status** o **/stato** - Mostra stato attuale',
+                tipsTitle: '💡 **Suggerimenti:**',
+                tip1: '• Posso analizzare il contenuto della pagina web corrente',
+                tip2: '• Fammi domande su quello che stai leggendo',
+                tip3: '• Posso aiutarti con riassunti, spiegazioni e altro!',
+                
+                // Status display
+                statusTitle: '📊 **Stato Attuale:**',
+                apiKeyStatus: 'Chiave API',
+                pageContentStatus: 'Contenuto Pagina',
+                extensionStatus: 'Estensione',
+                connected: 'Connessa',
+                notSet: 'Non impostata',
+                loaded: 'Caricato',
+                notAvailable: 'Non disponibile',
+                active: 'Attiva',
+                debugInfo: '💡 **Info Debug:**',
+                pagePreview: 'Anteprima contenuto pagina',
+                none: 'Nessuno',
+                
+                // Share messages
+                noConversationToShare: '❌ Nessuna conversazione da condividere',
+                conversationCopied: '✅ Conversazione copiata negli appunti!',
+                shareError: '❌ Errore durante la condivisione',
+                conversationTitle: '🤖 Conversazione SafarAI',
+                userLabel: '👤 Utente',
+                assistantLabel: '🤖 SafarAI',
+                
+                // Generation stopped
+                generationStopped: '⏹️ Generazione interrotta dall\'utente'
+            },
+            en: {
+                // Interface elements
+                apiKeyPlaceholder: 'Enter DeepSeek API Key',
+                saveButton: 'Save',
+                sendButton: 'Send',
+                messagePlaceholder: 'Ask me anything about this page...',
+                thinkingText: 'Thinking...',
+                readyStatus: 'Ready',
+                
+                // Status messages
+                extractingContent: 'Extracting page content...',
+                readyLimited: 'Ready (limited)',
+                contentExtractionFailed: 'Content extraction failed',
+                apiKeySaved: 'API key saved',
+                errorSavingApiKey: 'Error saving API key',
+                chatCleared: 'Chat cleared',
+                thinking: 'Thinking...',
+                
+                // Error messages
+                errorProcessingRequest: 'Sorry, I encountered an error processing your request. Please try again.',
+                unableToExtract: 'Unable to extract page content. You can still ask general questions.',
+                systemPageError: 'This page cannot be analyzed (system page or extension page).',
+                extractionError: 'Error extracting page content: ',
+                noContentAvailable: 'No content available',
+                
+                // Content extraction failed message
+                extractionFailedMessage: '⚠️ **Content Extraction Failed**\n\nI couldn\'t analyze the content of this page. Try to:\n\n• **Reload the page** and reopen SafarAI\n• Make sure the page is fully loaded\n• Verify it\'s not a protected page\n\nYou can still ask me general questions!',
+                
+                // Commands and help
+                commandsTitle: '🤖 **SafarAI Commands:**',
+                clearCommand: '• **/clear** - Clear chat history',
+                helpCommand: '• **/help** - Show this help message',
+                statusCommand: '• **/status** - Show current status',
+                tipsTitle: '💡 **Tips:**',
+                tip1: '• I can analyze the current webpage content',
+                tip2: '• Ask me questions about what you\'re reading',
+                tip3: '• I can help with summaries, explanations, and more!',
+                
+                // Status display
+                statusTitle: '📊 **Current Status:**',
+                apiKeyStatus: 'API Key',
+                pageContentStatus: 'Page Content',
+                extensionStatus: 'Extension',
+                connected: 'Connected',
+                notSet: 'Not set',
+                loaded: 'Loaded',
+                notAvailable: 'Not available',
+                active: 'Active',
+                debugInfo: '💡 **Debug Info:**',
+                pagePreview: 'Current page content preview',
+                none: 'None',
+                
+                // Share messages
+                noConversationToShare: '❌ No conversation to share',
+                conversationCopied: '✅ Conversation copied to clipboard!',
+                shareError: '❌ Error during sharing',
+                conversationTitle: '🤖 SafarAI Conversation',
+                userLabel: '👤 User',
+                assistantLabel: '🤖 SafarAI',
+                
+                // Generation stopped
+                generationStopped: '⏹️ Generation stopped by user'
+            }
+        };
     }
     
     initializeElements() {
@@ -22,14 +159,46 @@ class SafarAIPopup {
             messages: document.getElementById('messages'),
             messageInput: document.getElementById('messageInput'),
             sendButton: document.getElementById('sendButton'),
+            stopButton: document.getElementById('stopButton'),
+            shareButton: document.getElementById('shareButton'),
             loading: document.getElementById('loading'),
             status: document.getElementById('status')
         };
     }
     
+    t(key) {
+        return this.translations[this.currentLanguage][key] || key;
+    }
+    
+    setLanguage(lang) {
+        this.currentLanguage = lang;
+        this.updateInterface();
+    }
+    
+    updateInterface() {
+        // Update interface elements
+        this.elements.apiKeyInput.placeholder = this.t('apiKeyPlaceholder');
+        this.elements.saveApiKeyBtn.textContent = this.t('saveButton');
+        this.elements.sendButton.textContent = this.t('sendButton');
+        this.elements.messageInput.placeholder = this.t('messagePlaceholder');
+        
+        // Update loading text
+        const loadingSpan = this.elements.loading.querySelector('span');
+        if (loadingSpan) {
+            loadingSpan.textContent = this.t('thinkingText');
+        }
+        
+        // Update status if it's showing ready
+        if (this.elements.status.textContent === 'Pronto' || this.elements.status.textContent === 'Ready') {
+            this.elements.status.textContent = this.t('readyStatus');
+        }
+    }
+    
     bindEvents() {
         this.elements.saveApiKeyBtn.addEventListener('click', () => this.saveApiKey());
         this.elements.sendButton.addEventListener('click', () => this.sendMessage());
+        this.elements.stopButton.addEventListener('click', () => this.stopGeneration());
+        this.elements.shareButton.addEventListener('click', () => this.shareConversation());
         this.elements.messageInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -76,10 +245,10 @@ class SafarAIPopup {
             this.apiKey = apiKey;
             this.elements.apiKeyInput.value = '••••••••••••••••';
             this.checkApiKeyStatus();
-            this.updateStatus('API key saved', 'success');
+            this.updateStatus(this.t('apiKeySaved'), 'success');
         } catch (error) {
             console.error('Error saving API key:', error);
-            this.updateStatus('Error saving API key', 'error');
+            this.updateStatus(this.t('errorSavingApiKey'), 'error');
         }
     }
     
@@ -87,16 +256,45 @@ class SafarAIPopup {
         if (this.apiKey) {
             this.elements.apiKeySection.style.display = 'none';
             this.elements.chatContainer.style.display = 'flex';
+            this.elements.shareButton.style.display = 'flex';
             this.extractPageContent();
         } else {
             this.elements.apiKeySection.style.display = 'flex';
             this.elements.chatContainer.style.display = 'none';
+            this.elements.shareButton.style.display = 'none';
         }
+    }
+    
+    async loadConversationHistory() {
+        try {
+            const result = await chrome.storage.local.get(['conversationHistory']);
+            if (result.conversationHistory) {
+                this.conversationHistory = result.conversationHistory;
+                this.restoreMessages();
+            }
+        } catch (error) {
+            console.error('Error loading conversation history:', error);
+        }
+    }
+    
+    async saveConversationHistory() {
+        try {
+            await chrome.storage.local.set({ conversationHistory: this.conversationHistory });
+        } catch (error) {
+            console.error('Error saving conversation history:', error);
+        }
+    }
+    
+    restoreMessages() {
+        this.elements.messages.innerHTML = '';
+        this.conversationHistory.forEach(message => {
+            this.addMessageToDOM(message.content, message.role, false);
+        });
     }
     
     async extractPageContent() {
         try {
-            this.updateStatus('Extracting page content...', 'loading');
+            this.updateStatus(this.t('extractingContent'), 'loading');
             
             // Get active tab
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -107,8 +305,8 @@ class SafarAIPopup {
             
             // Check if it's a valid web page
             if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('moz-extension://')) {
-                this.currentPageContent = 'This page cannot be analyzed (system page or extension page).';
-                this.updateStatus('Ready (limited)', 'success');
+                this.currentPageContent = this.t('systemPageError');
+                this.updateStatus(this.t('readyLimited'), 'success');
                 return;
             }
             
@@ -118,11 +316,11 @@ class SafarAIPopup {
                 
                 if (response && response.success && response.content && response.content.content) {
                     this.currentPageContent = this.formatPageContent(response.content);
-                    this.updateStatus('Ready', 'success');
+                    this.updateStatus(this.t('readyStatus'), 'success');
                     return;
                 }
             } catch (bgError) {
-                console.log('Background script not available, trying direct extraction');
+                console.log('Script di background non disponibile, provo estrazione diretta');
             }
             
             // Fallback: Send message to content script
@@ -131,11 +329,11 @@ class SafarAIPopup {
                 
                 if (contentResponse && contentResponse.success && contentResponse.content) {
                     this.currentPageContent = this.formatPageContent(contentResponse.content);
-                    this.updateStatus('Ready', 'success');
+                    this.updateStatus(this.t('readyStatus'), 'success');
                     return;
                 }
             } catch (contentError) {
-                console.log('Content script not responding, trying executeScript');
+                console.log('Content script non risponde, provo executeScript');
             }
             
             // Final fallback: Execute script directly
@@ -146,15 +344,18 @@ class SafarAIPopup {
             
             if (result && result[0] && result[0].result) {
                 this.currentPageContent = result[0].result;
-                this.updateStatus('Ready', 'success');
+                this.updateStatus(this.t('readyStatus'), 'success');
             } else {
-                throw new Error('Failed to extract page content');
+                throw new Error(this.t('extractionError').replace(': ', ''));
             }
             
         } catch (error) {
             console.error('Error extracting page content:', error);
-            this.updateStatus('Content extraction failed', 'error');
-            this.currentPageContent = 'Unable to extract page content. You can still ask general questions.';
+            this.updateStatus(this.t('contentExtractionFailed'), 'error');
+            this.currentPageContent = this.t('unableToExtract');
+            
+            // Show reload suggestion message in chat
+            this.addMessage(this.t('extractionFailedMessage'), 'assistant');
         }
     }
     
@@ -235,7 +436,7 @@ class SafarAIPopup {
             return {
                 title: document.title || '',
                 url: window.location.href,
-                content: 'Error extracting page content: ' + error.message,
+                content: this.t('extractionError') + error.message,
                 extractedAt: new Date().toISOString()
             };
         }
@@ -244,6 +445,12 @@ class SafarAIPopup {
     async sendMessage() {
         const message = this.elements.messageInput.value.trim();
         if (!message || this.isLoading) return;
+        
+        // Detect and set language based on user input
+        const detectedLang = this.detectLanguage(message);
+        if (detectedLang !== this.currentLanguage) {
+            this.setLanguage(detectedLang);
+        }
         
         // Check for special commands
         if (this.handleSpecialCommands(message)) {
@@ -258,20 +465,27 @@ class SafarAIPopup {
         // Add user message to chat
         this.addMessage(message, 'user');
         
-        // Show typing indicator
+        // Show typing indicator and stop button
         this.showTypingIndicator();
         this.setLoadingState(true);
         
         try {
             const response = await this.callDeepSeekAPI(message);
             this.hideTypingIndicator();
-            this.addMessage(response, 'assistant');
+            if (response) {
+                this.addMessage(response, 'assistant');
+            }
         } catch (error) {
-            console.error('Error calling API:', error);
             this.hideTypingIndicator();
-            this.addMessage('Sorry, I encountered an error processing your request. Please try again.', 'assistant');
+            if (error.name === 'AbortError') {
+                console.log('Request was aborted');
+            } else {
+                console.error('Error calling API:', error);
+                this.addMessage(this.t('errorProcessingRequest'), 'assistant');
+            }
         } finally {
             this.setLoadingState(false);
+            this.currentAbortController = null;
         }
     }
     
@@ -280,12 +494,15 @@ class SafarAIPopup {
         
         switch (command) {
             case '/clear':
+            case '/cancella':
                 this.clearChat();
                 return true;
             case '/help':
+            case '/aiuto':
                 this.showHelp();
                 return true;
             case '/status':
+            case '/stato':
                 this.showStatus();
                 return true;
             default:
@@ -295,36 +512,79 @@ class SafarAIPopup {
     
     clearChat() {
         this.elements.messages.innerHTML = '';
-        this.addMessage('Chat cleared! 🧹', 'assistant');
+        this.conversationHistory = [];
+        this.saveConversationHistory();
+        this.updateStatus(this.t('chatCleared'), 'success');
+        setTimeout(() => {
+            this.updateStatus(this.t('readyStatus'), 'success');
+        }, 2000);
+    }
+    
+    stopGeneration() {
+        if (this.currentAbortController) {
+            this.currentAbortController.abort();
+            this.currentAbortController = null;
+        }
+        this.hideTypingIndicator();
+        this.setLoadingState(false);
+        this.addMessage(this.t('generationStopped'), 'assistant');
+    }
+    
+    async shareConversation() {
+        if (this.conversationHistory.length === 0) {
+            this.addMessage(this.t('noConversationToShare'), 'assistant');
+            return;
+        }
+        
+        const conversationText = this.conversationHistory
+            .map(msg => `${msg.role === 'user' ? this.t('userLabel') : this.t('assistantLabel')}: ${msg.content}`)
+            .join('\n\n');
+        
+        const shareText = `${this.t('conversationTitle')}\n\n${conversationText}`;
+        
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: 'Conversazione SafarAI',
+                    text: shareText
+                });
+            } else {
+                await navigator.clipboard.writeText(shareText);
+                this.addMessage(this.t('conversationCopied'), 'assistant');
+            }
+        } catch (error) {
+            console.error('Error sharing conversation:', error);
+            this.addMessage(this.t('shareError'), 'assistant');
+        }
     }
     
     showHelp() {
-        const helpText = `🤖 **SafarAI Commands:**
+        const helpText = `${this.t('commandsTitle')}
 
-• **/clear** - Clear chat history
-• **/help** - Show this help message
-• **/status** - Show current status
+${this.t('clearCommand')}
+${this.t('helpCommand')}
+${this.t('statusCommand')}
 
-💡 **Tips:**
-• I can analyze the current webpage content
-• Ask me questions about what you're reading
-• I can help with summaries, explanations, and more!`;
+${this.t('tipsTitle')}
+${this.t('tip1')}
+${this.t('tip2')}
+${this.t('tip3')}`;
         this.addMessage(helpText, 'assistant');
     }
     
     showStatus() {
         const hasApiKey = !!this.apiKey;
-        const hasPageContent = !!this.currentPageContent && this.currentPageContent !== 'Unable to extract page content. You can still ask general questions.';
+        const hasPageContent = !!this.currentPageContent && this.currentPageContent !== this.t('unableToExtract');
         const contentLength = this.currentPageContent ? this.currentPageContent.length : 0;
         
-        const statusText = `📊 **Current Status:**
+        const statusText = `${this.t('statusTitle')}
 
-• API Key: ${hasApiKey ? '✅ Connected' : '❌ Not set'}
-• Page Content: ${hasPageContent ? `✅ Loaded (${contentLength} chars)` : '❌ Not available'}
-• Extension: ✅ Active
+• ${this.t('apiKeyStatus')}: ${hasApiKey ? '✅ ' + this.t('connected') : '❌ ' + this.t('notSet')}
+• ${this.t('pageContentStatus')}: ${hasPageContent ? `✅ ${this.t('loaded')} (${contentLength} ${this.currentLanguage === 'it' ? 'caratteri' : 'chars'})` : '❌ ' + this.t('notAvailable')}
+• ${this.t('extensionStatus')}: ✅ ${this.t('active')}
 
-💡 **Debug Info:**
-• Current page content preview: ${this.currentPageContent ? this.currentPageContent.substring(0, 100) + '...' : 'None'}`;
+${this.t('debugInfo')}
+• ${this.t('pagePreview')}: ${this.currentPageContent ? this.currentPageContent.substring(0, 100) + '...' : this.t('none')}`;
         this.addMessage(statusText, 'assistant');
     }
     
@@ -339,26 +599,59 @@ class SafarAIPopup {
             if (pageData.url) formatted += `URL: ${pageData.url}\n`;
             if (pageData.description) formatted += `Description: ${pageData.description}\n`;
             if (pageData.content) formatted += `\nContent:\n${pageData.content}`;
-            return formatted || 'No content available';
+            return formatted || this.t('noContentAvailable');
         }
         
-        return 'No content available';
+        return this.t('noContentAvailable');
     }
     
+    detectLanguage(text) {
+        // Simple language detection based on common words and patterns
+        const italianWords = ['il', 'la', 'di', 'che', 'e', 'a', 'un', 'per', 'in', 'con', 'come', 'del', 'della', 'sono', 'cosa', 'può', 'puoi', 'questo', 'questa', 'aiuto', 'grazie', 'prego', 'bene', 'molto', 'anche', 'essere', 'fare', 'dire', 'andare', 'vedere'];
+        const englishWords = ['the', 'is', 'at', 'which', 'on', 'and', 'a', 'to', 'an', 'as', 'are', 'was', 'for', 'with', 'his', 'they', 'i', 'that', 'it', 'have', 'from', 'or', 'one', 'had', 'by', 'word', 'but', 'not', 'what', 'all', 'were', 'we', 'when', 'your', 'can', 'said', 'there', 'each', 'which', 'she', 'do', 'how', 'their', 'if', 'will', 'up', 'other', 'about', 'out', 'many', 'then', 'them', 'these', 'so', 'some', 'her', 'would', 'make', 'like', 'into', 'him', 'has', 'two', 'more', 'go', 'no', 'way', 'could', 'my', 'than', 'first', 'been', 'call', 'who', 'its', 'now', 'find', 'long', 'down', 'day', 'did', 'get', 'come', 'made', 'may', 'part'];
+        
+        const words = text.toLowerCase().split(/\\s+/);
+        let italianScore = 0;
+        let englishScore = 0;
+        
+        words.forEach(word => {
+            if (italianWords.includes(word)) italianScore++;
+            if (englishWords.includes(word)) englishScore++;
+        });
+        
+        // Default to Italian if scores are equal or low
+        return italianScore >= englishScore ? 'it' : 'en';
+    }
+
     async callDeepSeekAPI(userMessage) {
         const hasValidContent = this.currentPageContent && 
-                               this.currentPageContent !== 'Unable to extract page content. You can still ask general questions.' &&
-                               this.currentPageContent !== 'This page cannot be analyzed (system page or extension page).';
+                               this.currentPageContent !== this.t('unableToExtract') &&
+                               this.currentPageContent !== this.t('systemPageError');
+        
+        // Detect user's language
+        const userLanguage = this.detectLanguage(userMessage);
         
         const systemPrompt = hasValidContent ? 
-            `You are SafarAI, a helpful AI assistant integrated into Safari. You have access to the content of the current web page. Answer questions about the page content, summarize information, or help with any queries the user has.
+            (userLanguage === 'it' ? 
+                `Sei SafarAI, un assistente AI utile integrato in Safari. Hai accesso al contenuto della pagina web corrente. Rispondi alle domande sul contenuto della pagina, riassumi informazioni o aiuta con qualsiasi richiesta dell'utente.
+
+Contenuto della pagina corrente:
+${this.currentPageContent}
+
+Fornisci risposte utili e accurate basate sul contenuto della pagina quando pertinente. Se la domanda non è correlata al contenuto della pagina, puoi comunque fornire assistenza generale. Rispondi sempre in italiano.` :
+                `You are SafarAI, a helpful AI assistant integrated into Safari. You have access to the content of the current web page. Answer questions about the page content, summarize information, or help with any queries the user has.
 
 Current page content:
 ${this.currentPageContent}
 
-Please provide helpful, accurate responses based on the page content when relevant. If the question is not related to the page content, you can still provide general assistance.` :
-            `You are SafarAI, a helpful AI assistant integrated into Safari. The current page content is not available for analysis, but you can still provide general assistance and answer questions to the best of your ability.`;
+Please provide helpful, accurate responses based on the page content when relevant. If the question is not related to the page content, you can still provide general assistance. Always respond in English.`) :
+            (userLanguage === 'it' ? 
+                `Sei SafarAI, un assistente AI utile integrato in Safari. Il contenuto della pagina corrente non è disponibile per l'analisi, ma puoi comunque fornire assistenza generale e rispondere alle domande al meglio delle tue capacità. Rispondi sempre in italiano.` :
+                `You are SafarAI, a helpful AI assistant integrated into Safari. The current page content is not available for analysis, but you can still provide general assistance and answer questions to the best of your ability. Always respond in English.`);
 
+        // Create abort controller for this request
+        this.currentAbortController = new AbortController();
+        
         const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -373,7 +666,8 @@ Please provide helpful, accurate responses based on the page content when releva
                 ],
                 max_tokens: 2000,
                 temperature: 0.7
-            })
+            }),
+            signal: this.currentAbortController.signal
         });
         
         if (!response.ok) {
@@ -390,21 +684,35 @@ Please provide helpful, accurate responses based on the page content when releva
     }
     
     addMessage(content, role) {
+        // Save to conversation history
+        this.conversationHistory.push({ content, role, timestamp: Date.now() });
+        this.saveConversationHistory();
+        
+        this.addMessageToDOM(content, role, true);
+    }
+    
+    addMessageToDOM(content, role, withTyping = false) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${role}`;
         
         if (role === 'assistant') {
             // Simple markdown-like formatting
-            content = content
+            const formattedContent = content
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\*(.*?)\*/g, '<em>$1</em>')
                 .replace(/`(.*?)`/g, '<code>$1</code>')
                 .replace(/```([\s\S]*?)```/g, '<pre>$1</pre>')
                 .replace(/\n/g, '<br>');
             
-            // Add typing effect for assistant messages
             this.elements.messages.appendChild(messageDiv);
-            this.typeMessage(messageDiv, content);
+            
+            if (withTyping) {
+                // Add typing effect for new assistant messages
+                this.typeMessage(messageDiv, formattedContent);
+            } else {
+                // No typing effect for restored messages
+                messageDiv.innerHTML = formattedContent;
+            }
         } else {
             messageDiv.textContent = content;
             this.elements.messages.appendChild(messageDiv);
@@ -458,12 +766,14 @@ Please provide helpful, accurate responses based on the page content when releva
     setLoadingState(loading) {
         this.isLoading = loading;
         this.elements.sendButton.disabled = loading;
+        this.elements.sendButton.style.display = loading ? 'none' : 'flex';
+        this.elements.stopButton.style.display = loading ? 'flex' : 'none';
         this.elements.loading.style.display = loading ? 'flex' : 'none';
         
         if (loading) {
-            this.updateStatus('Thinking...', 'loading');
+            this.updateStatus(this.t('thinking'), 'loading');
         } else {
-            this.updateStatus('Ready', 'success');
+            this.updateStatus(this.t('readyStatus'), 'success');
         }
     }
     
